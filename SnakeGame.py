@@ -54,17 +54,38 @@ stepY = -VERTICAL_STEP
 segX = []
 segY = []
 
+appleX = []
+appleY = []
+
 segmentColor = BLUE
 
 #---------------------------------------#
 # Functions                             #
 #---------------------------------------#
 
+def generateApples():
+    appleGenerated = randint(1, 20)
+    if appleGenerated == 1:
+        appleRandomX = randint(0, WIDTH // 20) * 20
+        appleRandomY = randint(0, HEIGHT // 20) * 20
+        locationFree = True
+        for i in range(len(segX)):
+            if appleRandomX == segX[i] and appleRandomY == segY[i]:
+                locationFree = False
+        for i in range(len(appleX)):
+            if appleRandomX == appleX[i] and appleRandomY == appleY[i]:
+                locationFree = False
+        if locationFree == True:
+            appleX.append(appleRandomX)
+            appleY.append(appleRandomY)
+
 def redraw_game_window():
     gameWindow.fill(BLACK)
     for i in range(len(segX)):
         color = RED if i == 0 else BLUE
         pygame.draw.circle(gameWindow, color, (segX[i], segY[i]), SEGMENT_RADIUS, 0)
+    for i in range(len(appleX)):
+        pygame.draw.circle(gameWindow, WHITE, (appleX[i], appleY[i]), SEGMENT_RADIUS, 0)
     pygame.display.update()
 
 #---------------------------------------#
@@ -90,43 +111,50 @@ while in_play:
     if keys[pygame.K_ESCAPE]:
         in_play = False
 
-    if keys[pygame.K_LEFT] and segX[0] > segX[1]:
+    if keys[pygame.K_LEFT] and segX[0] == segX[1]:
         stepX = -HORIZONTAL_STEP
         stepY = 0
 
-    if keys[pygame.K_RIGHT] and segX[0] < segX[1]:
+    if keys[pygame.K_RIGHT] and segX[0] == segX[1]:
         stepX = HORIZONTAL_STEP
         stepY = 0
 
-    if keys[pygame.K_UP] and segY[0] > segY[1]:
+    if keys[pygame.K_UP] and segY[0] == segY[1]:
         stepX = 0
         stepY = -VERTICAL_STEP
 
-    if keys[pygame.K_DOWN] and segY[0] < segY[1]:
+    if keys[pygame.K_DOWN] and segY[0] == segY[1]:
         stepX = 0
         stepY = VERTICAL_STEP
-
-    if keys[pygame.K_SPACE]:  # Add a segment when the space bar is pressed
-        segX.append(segX[-1])
-        segY.append(segY[-1])
 
     # Check for collisions with boundaries
     if segX[0] > RIGHT or segX[0] < LEFT or segY[0] > BOTTOM or segY[0] < TOP:
         in_play = False
 
-    # Move the segments
-    for i in range(len(segX) - 1, 0, -1):
-        segX[i] = segX[i - 1]
-        segY[i] = segY[i - 1]
-
-    # Move the head
-    segX[0] += stepX
-    segY[0] += stepY
-
     # Check for self-collision
     for i in range(1, len(segX)):
         if segX[0] == segX[i] and segY[0] == segY[i]:
             in_play = False
+    
+    # Check for apple collision
+    for i in range(len(appleX) - 1, -1, -1):
+        if segX[0] == appleX[i] and segY[0] == appleY[i]:
+            del appleX[i]
+            del appleY[i]
+            segX.append(segX[-1])
+            segY.append(segY[-1])
+
+    # Move the segments
+    for i in range(len(segX) - 1, 0, -1):
+        segX[i] = segX[i - 1]
+        segY[i] = segY[i - 1]
+    
+    # Generate Apples
+    generateApples()
+
+    # Move the head
+    segX[0] += stepX
+    segY[0] += stepY
 
     pygame.event.clear()
 
