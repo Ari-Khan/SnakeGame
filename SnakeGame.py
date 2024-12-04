@@ -17,6 +17,11 @@ pygame.init()
 # Define game window dimensions and colors
 WIDTH = 800
 HEIGHT = 600
+RIGHT = WIDTH
+LEFT = 0
+TOP = 0
+BOTTOM = HEIGHT
+MIDDLE = WIDTH // 2
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
@@ -28,6 +33,7 @@ OUTLINE = 0
 STEP = 20
 FPS = 30
 FONT_SIZE = 25
+STARTING_LENGTH = 4
 
 #---------------------------------------#
 # Initialize Variables                  #
@@ -46,6 +52,9 @@ segX = []
 segY = []
 appleX = []
 appleY = []
+
+# Initialize score
+score = 0
 
 #---------------------------------------#
 # Functions                             #
@@ -76,7 +85,7 @@ def drawGameWindow():
     # Clear the screen with a black background
     gameWindow.fill(BLACK)
 
-    # Draw the snake; head is red, body is blue
+    # Draw the snake with multiple colors
     for i in range(len(segX)):
         color = RED if i == 0 else BLUE
         pygame.draw.circle(gameWindow, color, (segX[i], segY[i]), SEGMENT_RADIUS, OUTLINE)
@@ -84,6 +93,10 @@ def drawGameWindow():
     # Draw the apples
     for i in range(len(appleX)):
         pygame.draw.circle(gameWindow, WHITE, (appleX[i], appleY[i]), SEGMENT_RADIUS, OUTLINE)
+
+    # Draw the score at the top center
+    scoreText = font.render(f"Score: {score}", True, WHITE)
+    gameWindow.blit(scoreText, (MIDDLE - 50, 10))
 
     # Update the display with the new frame
     pygame.display.update()
@@ -96,8 +109,8 @@ def drawGameWindow():
 print("Use arrow keys to move. Press ESC to quit.")
 
 # Initialize snake in the middle of the screen
-for i in range(4):
-    segX.append(WIDTH // 2)
+for i in range(STARTING_LENGTH):
+    segX.append(MIDDLE)
     segY.append(HEIGHT // 2 + i * STEP)
 
 inPlay = True
@@ -109,7 +122,7 @@ while inPlay:
     clock.tick(FPS)
 
     # Check if the snake collides with the edges of the screen
-    if segX[0] < 0 or segX[0] >= WIDTH or segY[0] < 0 or segY[0] >= HEIGHT:
+    if segX[0] < LEFT or segX[0] >= RIGHT or segY[0] < TOP or segY[0] >= BOTTOM:
         inPlay = False
 
     # Check if the snake collides with itself
@@ -125,6 +138,9 @@ while inPlay:
             del appleY[i]
             segX.append(segX[-1])
             segY.append(segY[-1])
+
+            # Increase the score when an apple is eaten
+            score += 1
 
     # Move the snake by shifting segment positions
     for i in range(len(segX) - 1, 0, -1):
