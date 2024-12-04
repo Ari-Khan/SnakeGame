@@ -90,7 +90,7 @@ def drawGameWindow(segX, segY, appleX, appleY, score):
     pygame.display.update()
 
 # Define the game-initializing function
-def startGame(FPS):
+def startGame(FPS, fastMode):
     # Initialize snake in the middle of the screen
     score = 0
     stepX = 0
@@ -134,6 +134,10 @@ def startGame(FPS):
 
                 # Increase the score when an apple is eaten
                 score += 1
+
+                # Increase FPS every 5 apples
+                if score % 5 == 0:
+                    FPS += 5
 
         # Move the snake by shifting segment positions
         for i in range(len(segX) - 1, 0, -1):
@@ -191,7 +195,11 @@ def startGame(FPS):
 
         # Check if the user would like to replay or return to the home screen
         if keys[pygame.K_r]:
-            return startGame(FPS)
+            if fastMode == True:
+                FPS = FPS_FAST
+            else:
+                FPS = FPS_NORMAL
+            return startGame(FPS, fastMode)
         if keys[pygame.K_h]:
             gameOver = False
 
@@ -222,13 +230,12 @@ while inHome:
 
     # Start Normal Mode (20 FPS)
     if keys[pygame.K_1]:
-        startGame(FPS_NORMAL)
+        fastMode = False
+        startGame(FPS_NORMAL, fastMode)
 
     # Start Fast Mode (30 FPS)
     if keys[pygame.K_2]:
-        startGame(FPS_FAST)
-    
-    if keys[pygame.K_ESCAPE]:
-            inHome = False
+        fastMode = True
+        startGame(FPS_FAST, fastMode)
 
 pygame.quit()
