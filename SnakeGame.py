@@ -30,6 +30,9 @@ FPS_NORMAL = 20
 FPS_FAST = 30
 FONT_SIZE = 25
 STARTING_LENGTH = 4
+GAME_TIME = 60
+
+# Define Text Constants
 
 #---------------------------------------#
 # Initialize Variables                  #
@@ -39,6 +42,35 @@ STARTING_LENGTH = 4
 gameWindow = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 font = pygame.font.SysFont("OCR-A Extended", FONT_SIZE)
+pygame.mixer.music.load("music.mp3")
+pygame.mixer.music.set_volume(1)
+
+# Snake-related variables
+score = 0
+stepX = 0
+stepY = 0
+segX = []
+segY = []
+color = None
+
+# Apple-related variables
+appleX = []
+appleY = []
+locationFree = None
+
+# Timer-related variables
+startTime = 0
+timeLeft = 0
+elapsedTime = 0
+
+# Game state variables
+inPlay = False
+gameOver = False
+inHome = False
+FPS = 20
+
+# Keys-related variables
+keys = None
 
 #---------------------------------------#
 # Functions                             #
@@ -69,7 +101,7 @@ def generateApples(appleX, appleY, segX, segY):
     return appleX, appleY
 
 # Define the game-drawing function
-def drawGameWindow(segX, segY, appleX, appleY, score):
+def drawGameWindow(segX, segY, appleX, appleY, score, timeLeft):
     # Clear the screen with a black background
     gameWindow.fill(BLACK)
 
@@ -85,6 +117,10 @@ def drawGameWindow(segX, segY, appleX, appleY, score):
     # Draw the score at the top center
     scoreText = font.render(f"Score: {score}", True, WHITE)
     gameWindow.blit(scoreText, (MIDDLE - 50, 10))
+
+    # Draw the countdown timer at the top right
+    timerText = font.render(f"Time: {timeLeft}s", True, WHITE)
+    gameWindow.blit(timerText, (WIDTH - 150, 10))
 
     # Update the display with the new frame
     pygame.display.update()
@@ -103,13 +139,25 @@ def startGame(FPS, fastMode):
     # Add head and 3 segments
     for i in range(4):
         segX.append(MIDDLE)
-        segY.append(HEIGHT // 2 + i * STEP)
+        segY.append(HEIGHT - 20 + i * STEP)
+
+    # Set the countdown timer (120 seconds)
+    startTime = pygame.time.get_ticks()
+    timeLeft = GAME_TIME
 
     inPlay = True
     while inPlay:
+        # Calculate remaining time
+        elapsedTime = (pygame.time.get_ticks() - startTime) // 1000 
+        timeLeft = GAME_TIME - elapsedTime
+
+        # If time runs out, end the game
+        if timeLeft <= 0:
+            inPlay = False
+
         # Generate apples and draw the game window
         appleX, appleY = generateApples(appleX, appleY, segX, segY)
-        drawGameWindow(segX, segY, appleX, appleY, score)
+        drawGameWindow(segX, segY, appleX, appleY, score, timeLeft)
 
         # Control game speed
         clock.tick(FPS)
@@ -207,8 +255,10 @@ def startGame(FPS, fastMode):
     return score, stepX, stepY, segX, segY, appleX, appleY
 
 # Main loop
+pygame.mixer.music.play(loops = -1)
 inHome = True
 while inHome:
+    
     gameWindow.fill(BLACK)
     titleText = font.render("Snake Game", True, WHITE)
     authorText = font.render("Created by Ari Khan", True, WHITE)
@@ -222,20 +272,16 @@ while inHome:
 
     pygame.display.update()
 
+    # Handle user input
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             inHome = False
 
     keys = pygame.key.get_pressed()
 
-    # Start Normal Mode (20 FPS)
     if keys[pygame.K_1]:
-        fastMode = False
-        startGame(FPS_NORMAL, fastMode)
-
-    # Start Fast Mode (30 FPS)
+        startGame(FPS_NORMAL, False)
     if keys[pygame.K_2]:
-        fastMode = True
-        startGame(FPS_FAST, fastMode)
+        startGame(FPS_FAST, True)
 
 pygame.quit()
