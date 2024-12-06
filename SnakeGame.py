@@ -151,7 +151,7 @@ def startGame(fastMode, highScore):
     # Add head and 3 segments
     for i in range(4):
         segX.append(MIDDLE)
-        segY.append(HEIGHT - 20 + i * STEP)
+        segY.append(HEIGHT - STEP + i * STEP)
 
     # Set the countdown timer
     startTime = pygame.time.get_ticks()
