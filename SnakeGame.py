@@ -23,21 +23,27 @@ BLUE = (0, 0, 255)
 BLACK = (0, 0, 0)
 
 # Define gameplay mechanics
-SEGMENT_RADIUS = 10
 EDGE_BUFFER = 1
 OUTLINE = 0
 STEP = 20
+FONT_SIZE = 25
+
+# Define game speed contants
 FPS_NORMAL = 20
 FPS_FAST = 30
-FONT_SIZE = 25
+
+# Define snake constants
 STARTING_LENGTH = 4
+SEGMENT_RADIUS = 10
+
+# Define game time
 GAME_TIME = 60
 
 #---------------------------------------#
 # Initialize Objects/Variables          #
 #---------------------------------------#
 
-# Create the game window and set up clock and font
+# Create the game window, set the clock, set the font, and set the music and soud effects
 gameWindow = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 font = pygame.font.SysFont("OCR-A Extended", FONT_SIZE)
@@ -46,19 +52,22 @@ pygame.mixer.music.set_volume(0.4)
 chompSound = pygame.mixer.Sound("chomp.wav")
 chompSound.set_volume(1)
 
-
-# Snake-related variables
-score = 0
-highScore = 0
+# Define Snake-related variables
 stepX = 0
 stepY = 0
 segX = []
 segY = []
 color = None
 
+# Define score variables
+score = 0
+highScore = 0
+
 # Apple-related variables
 appleX = []
 appleY = []
+appleXPosition = None
+appleXPosition = None
 locationFree = None
 
 # Timer-related variables
@@ -70,7 +79,6 @@ elapsedTime = 0
 inPlay = False
 gameOver = False
 inHome = False
-FPS = 20
 
 # Keys-related variables
 keys = None
@@ -199,10 +207,11 @@ def startGame(fastMode, highScore):
                 if score % 5 == 0:
                     fps += 5
         
+        # Increase the high score if beaten
         if score > highScore:
             highScore = score
 
-        # Move the snake
+        # Move the snake by shifting segments
         for i in range(len(segX) - 1, 0, -1):
             segX[i] = segX[i - 1]
             segY[i] = segY[i - 1]
@@ -236,24 +245,30 @@ def startGame(fastMode, highScore):
     # Show Game Over screen after death
     gameOver = True
     while gameOver:
+        # Clear the screen
         gameWindow.fill(BLACK)
+
+        # Define game over screen text
         gameOverText = font.render("Game Over", True, WHITE)
         scoreText = font.render(f"Total Score: {score}", True, WHITE)
         highScoreText = font.render(f"High Score: {highScore}", True, WHITE)
         restartText = font.render("Press R to Restart", True, WHITE)
         homeText = font.render("Press H to Return to Home", True, WHITE)
 
+        # Draw the game over screen
         gameWindow.blit(gameOverText, (MIDDLE - 70, HEIGHT // 3 - 50))
         gameWindow.blit(scoreText, (MIDDLE - 105, HEIGHT // 3))
         gameWindow.blit(highScoreText, (LEFT + 20, HEIGHT // 80))
         gameWindow.blit(restartText, (MIDDLE - 135, HEIGHT // 3 + 50))
         gameWindow.blit(homeText, (MIDDLE - 190, HEIGHT // 3 + 100))
 
+        # Update the screen
         pygame.display.update()
 
         # Wait for key press
         keys = pygame.key.get_pressed()
 
+        # Check for quit events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 gameOver = False
@@ -271,14 +286,17 @@ def startGame(fastMode, highScore):
 pygame.mixer.music.play(loops=-1)
 inHome = True
 while inHome:
-    # Draw the home screen 
+    # Clear the home screen
     gameWindow.fill(BLACK)
+
+    # Define home screen text
     titleText = font.render("Snake Game", True, WHITE)
     authorText = font.render("Created by Ari Khan", True, WHITE)
     modeText = font.render("Press 1 for Normal Mode", True, WHITE)
     fastModeText = font.render("Press 2 for Fast Mode", True, WHITE)
     highScoreText = font.render(f"High Score: {highScore}", True, WHITE)
 
+    # Draw home screen text
     gameWindow.blit(titleText, (MIDDLE - 75, HEIGHT // 3 - 50))
     gameWindow.blit(authorText, (MIDDLE - 140, HEIGHT // 3))
     gameWindow.blit(modeText, (MIDDLE - 190, HEIGHT // 3 + 50))
@@ -288,7 +306,7 @@ while inHome:
     # Update the display
     pygame.display.update()
 
-    # Handle quits
+    # Handle quit events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             inHome = False
@@ -301,4 +319,5 @@ while inHome:
     if keys[pygame.K_2]:
         highScore = startGame(True, highScore)
 
+# Quit the game after ending
 pygame.quit()
