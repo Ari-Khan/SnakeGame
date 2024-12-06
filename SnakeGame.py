@@ -24,6 +24,7 @@ BLACK = (0, 0, 0)
 
 # Define gameplay mechanics
 SEGMENT_RADIUS = 10
+EDGE_BUFFER = 1
 OUTLINE = 0
 STEP = 20
 FPS_NORMAL = 20
@@ -33,7 +34,7 @@ STARTING_LENGTH = 4
 GAME_TIME = 60
 
 #---------------------------------------#
-# Initialize Variables                  #
+# Initialize Objects/Variables          #
 #---------------------------------------#
 
 # Create the game window and set up clock and font
@@ -41,10 +42,14 @@ gameWindow = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 font = pygame.font.SysFont("OCR-A Extended", FONT_SIZE)
 pygame.mixer.music.load("music.mp3")
-pygame.mixer.music.set_volume(1)
+pygame.mixer.music.set_volume(0.5)
+chompSound = pygame.mixer.Sound("chomp.wav")
+chompSound.set_volume(1)
+
 
 # Snake-related variables
 score = 0
+highScore = 0
 stepX = 0
 stepY = 0
 segX = []
@@ -78,8 +83,8 @@ keys = None
 def generateApples(appleX, appleY, segX, segY):
     # Randomly generate an apple with a 1/20 chance per frame
     if randint(1, 20) == 1:
-        appleXPosition = randint(0, WIDTH // STEP) * STEP
-        appleYPosition = randint(0, HEIGHT // STEP) * STEP
+        appleXPosition = randint(EDGE_BUFFER, WIDTH // STEP - EDGE_BUFFER) * STEP
+        appleYPosition = randint(EDGE_BUFFER, HEIGHT // STEP - EDGE_BUFFER) * STEP
         locationFree = True
 
         # Check if the apple's position overlaps the snake
@@ -100,7 +105,7 @@ def generateApples(appleX, appleY, segX, segY):
     return appleX, appleY
 
 # Define the game-drawing function
-def drawGameWindow(segX, segY, appleX, appleY, score, timeLeft):
+def drawGameWindow(segX, segY, appleX, appleY, score, timeLeft, highScore):
     # Clear the screen
     gameWindow.fill(BLACK)
 
@@ -113,20 +118,22 @@ def drawGameWindow(segX, segY, appleX, appleY, score, timeLeft):
     for i in range(len(appleX)):
         pygame.draw.circle(gameWindow, WHITE, (appleX[i], appleY[i]), SEGMENT_RADIUS, OUTLINE)
 
-    # Draw the score text
+    # Draw the text info
     scoreText = font.render(f"Score: {score}", True, WHITE)
-    gameWindow.blit(scoreText, (MIDDLE - 50, 10))
-
-    # Draw the countdown timer text
+    highScoreText = font.render(f"High Score: {highScore}", True, WHITE)
     timerText = font.render(f"Time: {timeLeft}s", True, WHITE)
-    gameWindow.blit(timerText, (WIDTH - 150, 10))
+
+    gameWindow.blit(scoreText, (MIDDLE - 50, HEIGHT // 80))
+    gameWindow.blit(highScoreText, (LEFT + 20, HEIGHT // 80))
+    gameWindow.blit(timerText, (RIGHT - 150, HEIGHT // 80))
 
     # Update the display
     pygame.display.update()
 
 # Define the game-initializing function
-def startGame(FPS):
+def startGame(FPS, fastMode):
     score = 0
+    highScore = 0
     stepX = 0
     stepY = -STEP
     segX = []
@@ -143,6 +150,11 @@ def startGame(FPS):
     startTime = pygame.time.get_ticks()
     timeLeft = GAME_TIME
 
+    if fastMode:
+        FPS = 30
+    else:
+        FPS = 20
+
     inPlay = True
     while inPlay:
         # Calculate remaining time
@@ -155,7 +167,7 @@ def startGame(FPS):
 
         # Generate apples and draw the game window
         appleX, appleY = generateApples(appleX, appleY, segX, segY)
-        drawGameWindow(segX, segY, appleX, appleY, score, timeLeft)
+        drawGameWindow(segX, segY, appleX, appleY, score, timeLeft, highScore)
 
         # Control game speed
         clock.tick(FPS)
@@ -178,12 +190,18 @@ def startGame(FPS):
                 segX.append(segX[-1])
                 segY.append(segY[-1])
 
+                # Play the chomp sound effect
+                chompSound.play(loops = 0)
+
                 # Increase the score when an apple is eaten
                 score += 1
 
                 # Increase FPS every 5 apples
                 if score % 5 == 0:
                     FPS += 5
+        
+        if highScore < score:
+            highScore = score
 
         # Move the snake
         for i in range(len(segX) - 1, 0, -1):
@@ -222,11 +240,13 @@ def startGame(FPS):
         gameWindow.fill(BLACK)
         gameOverText = font.render("Game Over", True, WHITE)
         scoreText = font.render(f"Total Score: {score}", True, WHITE)
+        highScoreText = font.render(f"High Score: {highScore}", True, WHITE)
         restartText = font.render("Press R to Restart", True, WHITE)
         homeText = font.render("Press H to Return to Home", True, WHITE)
 
         gameWindow.blit(gameOverText, (MIDDLE - 70, HEIGHT // 3 - 50))
         gameWindow.blit(scoreText, (MIDDLE - 105, HEIGHT // 3))
+        gameWindow.blit(highScoreText, (LEFT + 20, HEIGHT // 80))
         gameWindow.blit(restartText, (MIDDLE - 135, HEIGHT // 3 + 50))
         gameWindow.blit(homeText, (MIDDLE - 190, HEIGHT // 3 + 100))
 
@@ -241,12 +261,12 @@ def startGame(FPS):
 
         # Check if the user would like to replay or return to the home screen
         if keys[pygame.K_r]:
-            return startGame(FPS)
+            return startGame(FPS, fastMode)
         if keys[pygame.K_h]:
             gameOver = False
 
     # Return variables
-    return score, stepX, stepY, segX, segY, appleX, appleY
+    return score, stepX, stepY, segX, segY, appleX, appleY, highScore
 
 # Main loop
 pygame.mixer.music.play(loops=-1)
@@ -258,11 +278,13 @@ while inHome:
     authorText = font.render("Created by Ari Khan", True, WHITE)
     modeText = font.render("Press 1 for Normal Mode", True, WHITE)
     fastModeText = font.render("Press 2 for Fast Mode", True, WHITE)
+    highScoreText = font.render(f"High Score: {highScore}", True, WHITE)
 
     gameWindow.blit(titleText, (MIDDLE - 75, HEIGHT // 3 - 50))
     gameWindow.blit(authorText, (MIDDLE - 140, HEIGHT // 3))
     gameWindow.blit(modeText, (MIDDLE - 190, HEIGHT // 3 + 50))
-    gameWindow.blit(fastModeText, (MIDDLE - 190, HEIGHT // 3 + 100))
+    gameWindow.blit(fastModeText, (MIDDLE - 170, HEIGHT // 3 + 100))
+    gameWindow.blit(highScoreText, (LEFT + 20, HEIGHT // 80))
 
     # Update the display
     pygame.display.update()
@@ -276,8 +298,8 @@ while inHome:
 
     # Handle user input to start game
     if keys[pygame.K_1]:
-        startGame(FPS_NORMAL)
+        startGame(FPS_NORMAL, False)
     if keys[pygame.K_2]:
-        startGame(FPS_FAST)
+        startGame(FPS_FAST, True)
 
 pygame.quit()
