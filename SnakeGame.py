@@ -32,8 +32,6 @@ FONT_SIZE = 25
 STARTING_LENGTH = 4
 GAME_TIME = 60
 
-# Define Text Constants
-
 #---------------------------------------#
 # Initialize Variables                  #
 #---------------------------------------#
@@ -98,11 +96,12 @@ def generateApples(appleX, appleY, segX, segY):
             appleX.append(appleXPosition)
             appleY.append(appleYPosition)
 
+    # Return variables
     return appleX, appleY
 
 # Define the game-drawing function
 def drawGameWindow(segX, segY, appleX, appleY, score, timeLeft):
-    # Clear the screen with a black background
+    # Clear the screen
     gameWindow.fill(BLACK)
 
     # Draw the snake with multiple colors
@@ -114,20 +113,19 @@ def drawGameWindow(segX, segY, appleX, appleY, score, timeLeft):
     for i in range(len(appleX)):
         pygame.draw.circle(gameWindow, WHITE, (appleX[i], appleY[i]), SEGMENT_RADIUS, OUTLINE)
 
-    # Draw the score at the top center
+    # Draw the score text
     scoreText = font.render(f"Score: {score}", True, WHITE)
     gameWindow.blit(scoreText, (MIDDLE - 50, 10))
 
-    # Draw the countdown timer at the top right
+    # Draw the countdown timer text
     timerText = font.render(f"Time: {timeLeft}s", True, WHITE)
     gameWindow.blit(timerText, (WIDTH - 150, 10))
 
-    # Update the display with the new frame
+    # Update the display
     pygame.display.update()
 
 # Define the game-initializing function
-def startGame(FPS, fastMode):
-    # Initialize snake in the middle of the screen
+def startGame(FPS):
     score = 0
     stepX = 0
     stepY = -STEP
@@ -141,7 +139,7 @@ def startGame(FPS, fastMode):
         segX.append(MIDDLE)
         segY.append(HEIGHT - 20 + i * STEP)
 
-    # Set the countdown timer (120 seconds)
+    # Set the countdown timer
     startTime = pygame.time.get_ticks()
     timeLeft = GAME_TIME
 
@@ -162,7 +160,7 @@ def startGame(FPS, fastMode):
         # Control game speed
         clock.tick(FPS)
 
-        # Check if the snake collides with the edges of the screen
+        # Check if the snake head collides with the edges of the screen
         if segX[0] < LEFT or segX[0] >= RIGHT or segY[0] < TOP or segY[0] >= BOTTOM:
             inPlay = False
 
@@ -187,7 +185,7 @@ def startGame(FPS, fastMode):
                 if score % 5 == 0:
                     FPS += 5
 
-        # Move the snake by shifting segment positions
+        # Move the snake
         for i in range(len(segX) - 1, 0, -1):
             segX[i] = segX[i - 1]
             segY[i] = segY[i - 1]
@@ -218,7 +216,7 @@ def startGame(FPS, fastMode):
             stepX = 0
             stepY = STEP
 
-    # Show Game Over Screen after death
+    # Show Game Over screen after death
     gameOver = True
     while gameOver:
         gameWindow.fill(BLACK)
@@ -234,7 +232,7 @@ def startGame(FPS, fastMode):
 
         pygame.display.update()
 
-        # Wait for key press to restart or go to home screen
+        # Wait for key press
         keys = pygame.key.get_pressed()
 
         for event in pygame.event.get():
@@ -243,45 +241,43 @@ def startGame(FPS, fastMode):
 
         # Check if the user would like to replay or return to the home screen
         if keys[pygame.K_r]:
-            if fastMode == True:
-                FPS = FPS_FAST
-            else:
-                FPS = FPS_NORMAL
-            return startGame(FPS, fastMode)
+            return startGame(FPS)
         if keys[pygame.K_h]:
             gameOver = False
 
-    # Return the values needed for restarting or going home
+    # Return variables
     return score, stepX, stepY, segX, segY, appleX, appleY
 
 # Main loop
-pygame.mixer.music.play(loops = -1)
+pygame.mixer.music.play(loops=-1)
 inHome = True
 while inHome:
-    
+    # Draw the home screen 
     gameWindow.fill(BLACK)
     titleText = font.render("Snake Game", True, WHITE)
     authorText = font.render("Created by Ari Khan", True, WHITE)
-    modeText = font.render("Press 1 for Normal Mode (20 FPS)", True, WHITE)
-    fastModeText = font.render("Press 2 for Fast Mode (30 FPS)", True, WHITE)
+    modeText = font.render("Press 1 for Normal Mode", True, WHITE)
+    fastModeText = font.render("Press 2 for Fast Mode", True, WHITE)
 
     gameWindow.blit(titleText, (MIDDLE - 75, HEIGHT // 3 - 50))
     gameWindow.blit(authorText, (MIDDLE - 140, HEIGHT // 3))
-    gameWindow.blit(modeText, (MIDDLE - 240, HEIGHT // 3 + 50))
-    gameWindow.blit(fastModeText, (MIDDLE - 225, HEIGHT // 3 + 100))
+    gameWindow.blit(modeText, (MIDDLE - 190, HEIGHT // 3 + 50))
+    gameWindow.blit(fastModeText, (MIDDLE - 190, HEIGHT // 3 + 100))
 
+    # Update the display
     pygame.display.update()
 
-    # Handle user input
+    # Handle quits
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             inHome = False
 
     keys = pygame.key.get_pressed()
 
+    # Handle user input to start game
     if keys[pygame.K_1]:
-        startGame(FPS_NORMAL, False)
+        startGame(FPS_NORMAL)
     if keys[pygame.K_2]:
-        startGame(FPS_FAST, True)
+        startGame(FPS_FAST)
 
 pygame.quit()
