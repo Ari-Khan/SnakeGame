@@ -131,15 +131,15 @@ def drawGameWindow(segX, segY, appleX, appleY, score, timeLeft, highScore):
     pygame.display.update()
 
 # Define the game-initializing function
-def startGame(FPS, fastMode):
+def startGame(fastMode, highScore):
     score = 0
-    highScore = 0
     stepX = 0
     stepY = -STEP
     segX = []
     segY = []
     appleX = []
     appleY = []
+    newHighScore = highScore
     
     # Add head and 3 segments
     for i in range(4):
@@ -151,9 +151,9 @@ def startGame(FPS, fastMode):
     timeLeft = GAME_TIME
 
     if fastMode:
-        FPS = 30
+        fps = FPS_FAST
     else:
-        FPS = 20
+        fps = FPS_NORMAL
 
     inPlay = True
     while inPlay:
@@ -167,10 +167,10 @@ def startGame(FPS, fastMode):
 
         # Generate apples and draw the game window
         appleX, appleY = generateApples(appleX, appleY, segX, segY)
-        drawGameWindow(segX, segY, appleX, appleY, score, timeLeft, highScore)
+        drawGameWindow(segX, segY, appleX, appleY, score, timeLeft, newHighScore)
 
         # Control game speed
-        clock.tick(FPS)
+        clock.tick(fps)
 
         # Check if the snake head collides with the edges of the screen
         if segX[0] < LEFT or segX[0] >= RIGHT or segY[0] < TOP or segY[0] >= BOTTOM:
@@ -198,10 +198,10 @@ def startGame(FPS, fastMode):
 
                 # Increase FPS every 5 apples
                 if score % 5 == 0:
-                    FPS += 5
+                    fps += 5
         
-        if highScore < score:
-            highScore = score
+        if score > newHighScore:
+            newHighScore = score
 
         # Move the snake
         for i in range(len(segX) - 1, 0, -1):
@@ -240,7 +240,7 @@ def startGame(FPS, fastMode):
         gameWindow.fill(BLACK)
         gameOverText = font.render("Game Over", True, WHITE)
         scoreText = font.render(f"Total Score: {score}", True, WHITE)
-        highScoreText = font.render(f"High Score: {highScore}", True, WHITE)
+        highScoreText = font.render(f"High Score: {newHighScore}", True, WHITE)
         restartText = font.render("Press R to Restart", True, WHITE)
         homeText = font.render("Press H to Return to Home", True, WHITE)
 
@@ -261,12 +261,12 @@ def startGame(FPS, fastMode):
 
         # Check if the user would like to replay or return to the home screen
         if keys[pygame.K_r]:
-            return startGame(FPS, fastMode)
+            return startGame(fastMode, newHighScore)
         if keys[pygame.K_h]:
             gameOver = False
 
     # Return variables
-    return score, stepX, stepY, segX, segY, appleX, appleY, highScore
+    return score, stepX, stepY, segX, segY, appleX, appleY
 
 # Main loop
 pygame.mixer.music.play(loops=-1)
@@ -298,8 +298,8 @@ while inHome:
 
     # Handle user input to start game
     if keys[pygame.K_1]:
-        startGame(FPS_NORMAL, False)
+        startGame(False, highScore)
     if keys[pygame.K_2]:
-        startGame(FPS_FAST, True)
+        startGame(True, highScore)
 
 pygame.quit()
