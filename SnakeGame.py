@@ -42,7 +42,7 @@ gameWindow = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 font = pygame.font.SysFont("OCR-A Extended", FONT_SIZE)
 pygame.mixer.music.load("music.mp3")
-pygame.mixer.music.set_volume(0.5)
+pygame.mixer.music.set_volume(0.4)
 chompSound = pygame.mixer.Sound("chomp.wav")
 chompSound.set_volume(1)
 
@@ -139,7 +139,6 @@ def startGame(fastMode, highScore):
     segY = []
     appleX = []
     appleY = []
-    newHighScore = highScore
     
     # Add head and 3 segments
     for i in range(4):
@@ -167,7 +166,7 @@ def startGame(fastMode, highScore):
 
         # Generate apples and draw the game window
         appleX, appleY = generateApples(appleX, appleY, segX, segY)
-        drawGameWindow(segX, segY, appleX, appleY, score, timeLeft, newHighScore)
+        drawGameWindow(segX, segY, appleX, appleY, score, timeLeft, highScore)
 
         # Control game speed
         clock.tick(fps)
@@ -200,8 +199,8 @@ def startGame(fastMode, highScore):
                 if score % 5 == 0:
                     fps += 5
         
-        if score > newHighScore:
-            newHighScore = score
+        if score > highScore:
+            highScore = score
 
         # Move the snake
         for i in range(len(segX) - 1, 0, -1):
@@ -240,7 +239,7 @@ def startGame(fastMode, highScore):
         gameWindow.fill(BLACK)
         gameOverText = font.render("Game Over", True, WHITE)
         scoreText = font.render(f"Total Score: {score}", True, WHITE)
-        highScoreText = font.render(f"High Score: {newHighScore}", True, WHITE)
+        highScoreText = font.render(f"High Score: {highScore}", True, WHITE)
         restartText = font.render("Press R to Restart", True, WHITE)
         homeText = font.render("Press H to Return to Home", True, WHITE)
 
@@ -261,12 +260,12 @@ def startGame(fastMode, highScore):
 
         # Check if the user would like to replay or return to the home screen
         if keys[pygame.K_r]:
-            return startGame(fastMode, newHighScore)
+            return startGame(fastMode, highScore)
         if keys[pygame.K_h]:
             gameOver = False
 
-    # Return variables
-    return score, stepX, stepY, segX, segY, appleX, appleY
+    # Return the high score
+    return highScore
 
 # Main loop
 pygame.mixer.music.play(loops=-1)
@@ -298,8 +297,8 @@ while inHome:
 
     # Handle user input to start game
     if keys[pygame.K_1]:
-        startGame(False, highScore)
+        highScore = startGame(False, highScore)
     if keys[pygame.K_2]:
-        startGame(True, highScore)
+        highScore = startGame(True, highScore)
 
 pygame.quit()
